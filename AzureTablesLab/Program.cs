@@ -15,6 +15,8 @@ namespace AzureTablesLab
             ReplaceEntity();
             InsertOrReplaceEntity();
             GetRangeOfEntitiesInParition();
+            DeleteEntity();
+            DeleteTable();
         }
 
         //Does single insert of entity
@@ -223,6 +225,58 @@ namespace AzureTablesLab
                 Console.WriteLine("{0}, {1}\t{2}\t{3}", entity.PartitionKey, entity.RowKey,
                     entity.Email, entity.PhoneNumber);
             }
+        }
+
+        public static void DeleteEntity ()
+        {
+            // Retrieve storage account from connection string
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            // Create the table client
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+            //Create the CloudTable that represents the "people" table.
+            CloudTable table = tableClient.GetTableReference("people");
+
+            // Create a retrieve operation that expects a customer entity.
+            TableOperation retrieveOperation = TableOperation.Retrieve<CustomerEntity>("Smith", "Ben");
+
+            // Execute the operation.
+            TableResult retrievedResult = table.Execute(retrieveOperation);
+
+            // Assign the result to a CustomerEntity.
+            CustomerEntity deleteEntity = (CustomerEntity)retrievedResult.Result;
+
+            // Create the Delete TableOperation.
+            if (deleteEntity != null)
+            {
+                TableOperation deleteOperation = TableOperation.Delete(deleteEntity);
+
+                // Execute the operation.
+                table.Execute(deleteOperation);
+
+                Console.WriteLine("Entity deleted.");
+            }
+
+            else
+                Console.WriteLine("Could not retrieve the entity.");
+        }
+
+        public static void DeleteTable()
+        {
+            // Retrieve the storage account from the connection string.
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            // Create the table client.
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+            //Create the CloudTable that represents the "people" table.
+            CloudTable table = tableClient.GetTableReference("people");
+
+            // Delete the table it if exists.
+            table.DeleteIfExists();
         }
     }
 
